@@ -95,13 +95,13 @@ class fourier_loss(nn.Module):
         self.weight_coeff = [0.05, 0.1, 0.5]
         self.ce = nn.CrossEntropyLoss(reduction='none')
         
-    def forward(self, pred, actual, descriptor_tuple):
+    def forward(self, pred, target, descriptor_tuple):
      
         weights = self.weights[:len(descriptor_tuple[0][0])]
         beta = weights * torch.abs(descriptor_tuple[0] - torch.tensor(np.array(descriptor_tuple[1])))
         ce_coeff = 1 + beta * self.weight_coeff[0]
         ce_coeff = torch.sum(ce_coeff, dim=1).to(self.device)
-        ce_loss = self.ce(pred, actual)
+        ce_loss = self.ce(pred, target)
         ce_loss = torch.mean(ce_loss,dim = [1,2])
         
         fourier_loss = (ce_coeff * ce_loss).mean()
