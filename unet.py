@@ -59,9 +59,6 @@ class up_process(nn.Module):
 
 
 class UNet(nn.Module):
-    """
-    Used feature channel size = [in_channel, 64, 128, 256, 512, 1024]
-    """
     def __init__(self, given_feature_size:list, parameters, block_type_name = "default", kernel_pool=2, stride_pool=2):    
         super().__init__()
         #Block Type Selection
