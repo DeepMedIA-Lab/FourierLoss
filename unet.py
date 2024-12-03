@@ -5,8 +5,7 @@ import copy
 
 """
 This Code includes:
-1. Model Construction Codes
-3. Weight Initialization Function
+Model Construction Codes
 """
 
 
