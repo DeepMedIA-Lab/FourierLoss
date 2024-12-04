@@ -87,21 +87,26 @@ class FourierDescriptors:
 
 class fourier_loss(nn.Module):    
 
-    def __init__(self, device):
+    def __init__(self, device,N=[2],mode=['center']):
         super().__init__()
         self.weights = torch.nn.Parameter(torch.tensor([3., 1., 0.5, 0.25, 0.25]))
         self.weights.requires_grad = True
         self.device = device
         self.weight_coeff = [0.05, 0.1, 0.5]
         self.ce = nn.CrossEntropyLoss(reduction='none')
+        self.N = N
+        self.fd_obj = FourierDescriptors(N, mode, 'harmonic_amplitude')
         
-    def forward(self, pred, target, descriptor_tuple):
-     
-        weights = self.weights[:len(descriptor_tuple[0][0])]
-        beta = weights * torch.abs(descriptor_tuple[0] - torch.tensor(np.array(descriptor_tuple[1])))
+    def forward(self, outputs, targets, golds_desc):
+
+        preds = torch.argmax(torch.softmax(outputs, dim=1), dim=1).cpu().detach().numpy()
+        preds_desc = [self.fd_obj.calculate_descriptors(pred.astype(int))[0][0][0] for pred in preds]
+
+        weights = self.weights[:self.N[0]]
+        beta = weights * torch.abs(golds_desc - torch.tensor(np.array(preds_desc)))
         ce_coeff = 1 + beta * self.weight_coeff[0]
         ce_coeff = torch.sum(ce_coeff, dim=1).to(self.device)
-        ce_loss = self.ce(pred, target)
+        ce_loss = self.ce(outputs, targets)
         ce_loss = torch.mean(ce_loss,dim = [1,2])
         
         fourier_loss = (ce_coeff * ce_loss).mean()
